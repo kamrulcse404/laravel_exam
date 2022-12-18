@@ -16,12 +16,35 @@ class ProductController extends Controller
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Http\Response|\Illuminate\View\View
      */
     public function index()
-    {   
-        // dd(Product::with("product_variant_prices")->get());
-        return view('products.index',[
-            'products' => Product::with("product_variant_prices")->paginate(5)
+    {
+        // $productVariants = ProductVariant::with('variants')->get()->unique('variant')->values();
+        return view('products.index', [
+            'products' => Product::with("product_variant_prices")->paginate(5),
+            'productsVariants' => ProductVariant::with('variants')->get()->unique('variant')->values()
         ]);
     }
+
+
+    public function filter(Request $request)
+    {
+        $title = $request->title;
+        $min_price = $request->price_from;
+        $max_price = $request->price_to;
+        $date = $request->date;
+
+        $products = Product::where('title', 'like', "%" . $request->title . "%")
+            ->orWhereDate('created_at', '=', $request->date)
+            ->orWhereHas('product_variant_prices', function ($query) use ($request) {
+                $query->whereBetween('price', [$request->price_from, $request->price_to]);
+            })
+            ->paginate(10);
+
+        $productsVariants = ProductVariant::with('variants')->get()->unique('variant')->values();
+        return view('products.index', compact('products', 'productsVariants'));
+    }
+
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -42,7 +65,6 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-
     }
 
 
@@ -54,7 +76,6 @@ class ProductController extends Controller
      */
     public function show($product)
     {
-
     }
 
     /**

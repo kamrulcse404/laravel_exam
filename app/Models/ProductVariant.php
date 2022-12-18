@@ -10,7 +10,9 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function variants(){
-        return $this->belongsTo(Variant::class);
+
+    public function variants()
+    {
+        return $this->belongsTo(Variant::class, 'variant_id', 'id');
     }
 }
